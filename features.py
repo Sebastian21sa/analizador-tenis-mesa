@@ -1,5 +1,9 @@
 import numpy as np
 def calcular_angulo(a, b, c):
+     """ Calcula el angulo (en grados) formado en el punto b,
+       entre los segmentos b-a y b-c. Se usa para medir angulos articulares como hombro-codo-muneca. 
+       Args: a, b, c: tuplas o listas (x, y, z) con las coordenadas de cada punto. 
+       Solo se usan x e y (2D). Devuelve: float: angulo en grados, entre 0 y 180. """
      a = np.array(a[:2]) 
      b = np.array(b[:2])
      c = np.array(c[:2]) 
@@ -11,6 +15,13 @@ def calcular_angulo(a, b, c):
      return angulo
 
 def extraer_features(rep, incluir_altura_muneca=False):
+    """ Convierte una repeticion completa (secuencia de frames con landmarks de MediaPipe Pose) 
+    en un vector fijo de caracteristicas numericas, listo para un modelo de clasificacion. 
+    Indices de MediaPipe Pose usados (jugador diestro): 11 = hombro izquierdo 12 = hombro derecho 14 = codo derecho
+    16 = muneca derecha 23 = cadera izquierda 24 = cadera derecha 
+    Args: rep: lista de frames, cada frame es una lista de 33 landmarks (x, y, z).
+    incluir_altura_muneca (bool): si True, agrega 4 features extra de altura de muneca respecto al hombro (usado en el reves). 
+    Devuelve: list[float]: 8 features (drive) o 12 features (reves). """
     angulos_codo = []
     rotaciones_cadera = []
     alturas_muneca = []
