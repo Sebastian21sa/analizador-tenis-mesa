@@ -13,6 +13,7 @@ random.seed(SEMILLA)
 tf.random.set_seed(SEMILLA)
 
 def cargar_dataset(carpeta, etiqueta):
+    """ Carga todas las repeticiones de una carpeta y les asigna la etiqueta correspondiente (1 = correcto, 0 = incorrecto)."""
     X = []
     y = []
     for archivo in glob.glob(os.path.join(carpeta, '*.npy')):
@@ -33,6 +34,9 @@ print(f'Total de repeticiones: {len(X)}')
 print(f'Forma de X: {X.shape}')
 print(f'Correctas: {sum(y == 1)}, Incorrectas: {sum(y == 0)}')
 
+"""Guarda el modelo entrenado en un archivo .h5 para poder usarlo luego en la app de Streamlit.
+El modelo es una red neuronal simple de 3 capas densas, entrenada con las features extraidas de las repeticiones de drive
+(min, max, rango y promedio de angulo de codo y rotacion de cadera)."""
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )

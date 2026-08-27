@@ -15,6 +15,7 @@ random.seed(SEMILLA)
 tf.random.set_seed(SEMILLA)
 
 def cargar_dataset(carpeta, etiqueta):
+    """ Carga todas las repeticiones de una carpeta y les asigna la etiqueta correspondiente (1 = correcto, 0 = incorrecto)."""
     X = []
     y = []
     for archivo in glob.glob(os.path.join(carpeta, '*.npy')):
@@ -69,7 +70,7 @@ historial = modelo.fit(
     #class_weight=class_weight_dict,
     verbose=1
 )
-
+"""Mostrar graficos de accuracy y loss durante el entrenamiento, para ver si hay overfitting o underfitting."""
 plt.figure(figsize=(12, 5))
 
 plt.subplot(1, 2, 1)
