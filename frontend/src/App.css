@@ -1,0 +1,65 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+.contenedor {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.selector-golpe {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.selector-golpe label {
+  padding: 10px 20px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  justify-content: center;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background: #eee;
+  border-radius: 8px;
+}
+
+.tab-btn.activo {
+  background: #333;
+  color: white;
+}
+
+.panel {
+  margin-top: 15px;
+}
+
+.resultado {
+  margin-top: 25px;
+  padding: 20px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.resultado.correcto {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.resultado.incorrecto {
+  background: #fee2e2;
+  color: #991b1b;
+}

@@ -8,6 +8,7 @@ from flask import Flask, request, jsonify
 from tensorflow import keras 
 from features import extraer_features
 import logging 
+from flask_cors import CORS 
 logger = logging.getLogger(__name__) 
 logger.setLevel(logging.INFO) 
 if not logger.handlers:
@@ -17,6 +18,7 @@ if not logger.handlers:
     logger.addHandler(manejador)
 """Application Flask para analizar videos de tenis de mesa y clasificar golpes como correctos o incorrectos usando modelos entrenados."""
 app = Flask(__name__) 
+CORS(app)
 modelo_drive = keras.models.load_model('modelo_drive_final.h5') 
 scaler_drive = joblib.load('scaler_drive.pkl') 
 modelo_reves = keras.models.load_model('modelo_reves_final.h5') 
