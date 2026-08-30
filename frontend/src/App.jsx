@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import './App.css'
 
 function App() {
@@ -6,13 +6,17 @@ function App() {
   const [tab, setTab] = useState('archivo')
   const [resultado, setResultado] = useState(null)
   const [cargando, setCargando] = useState(false)
+  const [camaraActiva, setCamaraActiva] = useState(false)
+  const [grabando, setGrabando] = useState(false)
 
-  async function subirYAnalizar(evento) {
-    const archivo = evento.target.files[0]
-    if (!archivo) return
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const mediaRecorderRef = useRef(null)
+  const chunksRef = useRef([])
 
+  async function analizarVideo(archivoOBlob, nombreArchivo) {
     const formData = new FormData()
-    formData.append('video', archivo)
+    formData.append('video', archivoOBlob, nombreArchivo)
     formData.append('golpe', golpe)
 
     setResultado(null)
@@ -30,6 +34,46 @@ function App() {
     } finally {
       setCargando(false)
     }
+  }
+
+  function subirYAnalizar(evento) {
+    const archivo = evento.target.files[0]
+    if (!archivo) return
+    analizarVideo(archivo, archivo.name)
+  }
+
+  async function activarCamara() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      streamRef.current = stream
+      videoRef.current.srcObject = stream
+      setCamaraActiva(true)
+    } catch (error) {
+      alert('No se pudo acceder a la camara. Revisa los permisos del navegador.')
+    }
+  }
+
+  function iniciarGrabacion() {
+    chunksRef.current = []
+    const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType: 'video/webm' })
+
+    mediaRecorder.ondataavailable = (evento) => {
+      chunksRef.current.push(evento.data)
+    }
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+      analizarVideo(blob, 'grabacion.webm')
+    }
+
+    mediaRecorder.start()
+    mediaRecorderRef.current = mediaRecorder
+    setGrabando(true)
+  }
+
+  function detenerGrabacion() {
+    mediaRecorderRef.current.stop()
+    setGrabando(false)
   }
 
   return (
@@ -97,8 +141,23 @@ function App() {
           )}
 
           {tab === 'camara' && (
-            <div className="zona-subida proximamente">
-              <span>Grabacion con camara disponible manana (Dia 32)</span>
+            <div className="panel-camara">
+              <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
+              {!camaraActiva && (
+                <button className="boton-primario" onClick={activarCamara}>
+                  Activar camara
+                </button>
+              )}
+              {camaraActiva && !grabando && (
+                <button className="boton-primario boton-grabar" onClick={iniciarGrabacion}>
+                  Grabar golpe
+                </button>
+              )}
+              {grabando && (
+                <button className="boton-primario boton-detener" onClick={detenerGrabacion}>
+                  Detener y analizar
+                </button>
+              )}
             </div>
           )}
 

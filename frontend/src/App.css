@@ -283,3 +283,49 @@ body {
     font-size: 32px;
   }
 }
+
+.panel-camara {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.video-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--ink);
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.boton-primario {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  background: var(--court-blue);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boton-primario:hover {
+  opacity: 0.9;
+}
+
+.boton-grabar {
+  background: var(--paddle-red);
+}
+
+.boton-detener {
+  background: var(--paddle-red);
+  animation: pulso 1.2s infinite;
+}
+
+@keyframes pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 54, 43, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(214, 54, 43, 0); }
+}
