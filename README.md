@@ -139,7 +139,7 @@ analizador-tenis-de-mesa/
 
 ## Documentación técnica completa
 
-El razonamiento detallado detrás de cada decisión técnica (criterios de golpes, arquitectura, calibración del dataset, bugs reales resueltos) está en [`docs/criterios-tecnicos-golpes.md`](documentacion/criterios-tecnicos-golpes.md).
+El razonamiento detallado detrás de cada decisión técnica (criterios de golpes, arquitectura, calibración del dataset, bugs reales resueltos) está en [`docs/criterios-tecnicos-golpes.md`](docs/criterios-tecnicos-golpes.md).
 
 ## Autor
 
