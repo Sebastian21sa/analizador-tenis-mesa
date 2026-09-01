@@ -23,7 +23,7 @@ function App() {
     setCargando(true)
 
     try {
-      const respuesta = await fetch('http://127.0.0.1:5000/predecir', {
+      const respuesta = await fetch(`${import.meta.env.VITE_API_URL}/predecir`,{
         method: 'POST',
         body: formData,
       })
