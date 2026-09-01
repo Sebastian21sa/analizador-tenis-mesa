@@ -6,7 +6,7 @@ Este es un documento de diseño del proyecto: un sistema de visión por computad
 
 ## 1. Criterios técnicos de los golpes
 
-Los criterios son definidos a partir de mi propipa experiencia como jugador, formalizados para su uso con **MediaPipe Pose**.
+Los criterios son definidos a partir de mi propia experiencia como jugador, formalizados para su uso con **MediaPipe Pose**.
 
 ### 1.1 Landmarks utilizados
 
@@ -185,3 +185,19 @@ Problemas reales encontrados y resueltos durante el desarrollo:
 1. Ampliar el dataset grabando desde 2-3 ángulos de cámara distintos.
 2. Rediseñar el pipeline en dos etapas: (1) identificar qué golpe es (drive, revés, o no reconocido), (2) evaluar si fue correcto — resolviendo el problema de OOD desde la raíz en vez de depender de la selección manual del usuario.
 3. Explorar el uso de la coordenada `z` (profundidad) que MediaPipe Pose ya entrega, como ayuda para normalizar variaciones de ángulo y distancia.
+
+---
+
+## 10. Despliegue en producción
+
+**Backend (Render):** contenedorizado con Docker. Decisión clave: el `Dockerfile` reentrena el modelo automáticamente en cada build (`RUN python entrenar_final.py`), en vez de subir los archivos `.h5`/`.pkl` ya entrenados al repositorio. Justificación: evita que el modelo desplegado quede desincronizado del dataset si en el futuro se reentrenaba y se olvidaba regenerar/subir los archivos manualmente — dado que las semillas aleatorias ya estaban fijadas (ver sección 8), este reentrenamiento en build es completamente reproducible.
+
+**Problemas reales resueltos durante el despliegue:**
+- **Librerías gráficas faltantes:** la imagen base `python:3.13-slim` no incluye las librerías de sistema que MediaPipe necesita para renderizado (`libEGL.so.1` y otras). Se identificaron iterativamente probando el contenedor localmente antes de desplegar, y se agregaron vía `apt-get install` en el Dockerfile (`libgl1`, `libglib2.0-0`, `libegl1`, `libgles2`, `libsm6`, `libxext6`).
+- **Límite práctico de tamaño de petición:** al probar la API en producción con un video de prueba de ~250 MB (una sesión completa de práctica, no un solo golpe), el servidor respondió `502 Bad Gateway` — el plan gratuito de Render no sostiene peticiones tan pesadas ni el tiempo de procesamiento que implicarían con los recursos de CPU limitados del nivel gratuito. Al probar con un clip de un solo golpe (unos pocos MB, el caso de uso real de la API), la petición se resolvió sin problema. Este hallazgo confirma y refuerza la decisión de diseño de "un video, un golpe" tomada en la sección 5.
+
+**Frontend (Vercel):** desplegado desde la subcarpeta `frontend/` del monorepo (Root Directory configurado explícitamente). La URL del backend ya no está fija en el código — se inyecta vía variable de entorno (`VITE_API_URL`), distinta en desarrollo local (`.env`, apuntando a `127.0.0.1:5000`) y en producción (configurada en el panel de Vercel, apuntando a la URL de Render).
+
+**Resultado:** proyecto completo accesible públicamente de punta a punta — frontend en Vercel comunicándose con backend en Render, sin dependencia de que ninguna máquina personal esté encendida.
+
+**Demo en vivo:** [pongiq-murex.vercel.app](https://pongiq-murex.vercel.app)

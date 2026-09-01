@@ -2,11 +2,13 @@
 
 ![Tests](https://github.com/Sebastian21sa/analizador-tenis-mesa/actions/workflows/tests.yml/badge.svg)
 
-Sistema de visión por computador que analiza la técnica del **drive** y el **revés** en tenis de mesa a partir de un video subido o grbado, usando estimación de pose (MediaPipe) y un modelo de deep learning (TensorFlow) entrenado con un dataset propio, grabado y etiquetado por mí mismo.
+**🔴 Demo en vivo:** [pongiq-murex.vercel.app](https://pongiq-murex.vercel.app) — el backend está en un servicio gratuito, así que la primera petición puede tardar 30-60s en "despertar" el servidor.
+
+Sistema de visión por computador que analiza la técnica del **drive** y el **revés** en tenis de mesa a partir de un video subido o grabado, usando estimación de pose (MediaPipe) y un modelo de deep learning (TensorFlow) entrenado con un dataset propio, grabado y etiquetado por mí mismo.
 
 ## Por qué existe este proyecto
 
-Jugué tenis de mesa competitivamente durante buena parte de mi niñez y adolecencia. Al cursar una especialización en Inteligencia Artificial, quise construir algo que combinara ambas cosas: aplicar visión por computador y deep learning a un problema donde mi criterio como jugador realmente importa en donde defini qué hace que un golpe sea técnicamente correcto o no, y enseñarle eso a un modelo.
+Jugué tenis de mesa competitivamente durante buena parte de mi niñez y adolescencia. Al cursar una especialización en Inteligencia Artificial, quise construir algo que combinara ambas cosas: aplicar visión por computador y deep learning a un problema donde mi criterio como jugador realmente importa, en donde definí qué hace que un golpe sea técnicamente correcto o no, y enseñarle eso a un modelo.
 
 ## Qué hace
 
@@ -85,6 +87,13 @@ Documentadas con honestidad:
 
 **Próxima fase planeada:** ampliar el dataset con múltiples ángulos de cámara y rediseñar el pipeline en dos etapas (1. identificar qué golpe es, 2. evaluar si fue correcto), resolviendo el problema de OOD desde la raíz.
 
+## Despliegue
+
+- **Backend**: Docker en [Render](https://render.com), reentrenando el modelo automáticamente en cada build a partir del dataset versionado (`RUN python entrenar_final.py` dentro del Dockerfile) — garantiza que el modelo desplegado siempre coincide con el dataset del repositorio.
+- **Frontend**: [Vercel](https://vercel.com), con la URL de la API inyectada vía variable de entorno (`VITE_API_URL`).
+
+**Limitación conocida del plan gratuito:** el servicio de backend se "duerme" tras 15 minutos de inactividad (30-60s para despertar en la primera petición), y hay un límite práctico de tamaño/duración de video por petición — la API está diseñada para un solo golpe por video, no para sesiones de práctica completas.
+
 ## Cómo correrlo localmente
 
 ### Backend
@@ -130,7 +139,7 @@ analizador-tenis-de-mesa/
 ├── dataset/                   # Repeticiones segmentadas (.npy)
 │   ├── drive/{correcto,incorrecto}/
 │   └── reves/{correcto,incorrecto}/
-├── documentacion/
+├── docs/
 │   └── criterios-tecnicos-golpes.md   # Documento de diseño técnico completo
 ├── .github/workflows/tests.yml        # CI/CD
 └── frontend/                  # Interfaz en React
