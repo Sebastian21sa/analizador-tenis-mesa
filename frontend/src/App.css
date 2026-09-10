@@ -1,21 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --paper: #F5F4F1;
-  --panel: #FFFFFF;
-  --ink: #15171A;
-  --ink-muted: #6B7178;
-  --court-blue: #0B5FA8;
-  --paddle-red: #D6362B;
-  --verdict-green: #1E8E5A;
-  --line: #E4E2DD;
+  --bg: #1e2530;
+  --panel: #262e3b;
+  --panel-hover: #2e3745;
+  --ink: #f0f2f5;
+  --ink-muted: #9aa5b5;
+  --accent: #7fcbe8;
+  --accent-soft: rgba(127, 203, 232, 0.14);
+  --line: rgba(240, 242, 245, 0.1);
+  --verdict-green: #4ade80;
+  --verdict-red: #f87171;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: radial-gradient(circle at 10% 15%, rgba(127, 203, 232, 0.10), transparent 35%),
+    radial-gradient(circle at 90% 85%, rgba(180, 140, 255, 0.08), transparent 35%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: 'Inter', sans-serif;
 }
@@ -25,40 +32,49 @@ body {
 }
 
 .encabezado {
-  background: var(--ink);
-  padding: 20px 24px;
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
 }
 
-.marca {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 520px;
-  margin: 0 auto;
+.marca { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start; 
+  gap: 2px; 
 }
 
 .icono-marca {
-  width: 32px;
-  height: 32px;
-  color: var(--court-blue);
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .marca h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
-  letter-spacing: 1px;
-  color: white;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--ink);
   margin: 0;
   line-height: 1;
 }
 
 .eyebrow {
   font-size: 12px;
-  color: #9CA3AF;
+  color: var(--accent);
   margin: 2px 0 0;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+}
+
+.volver-portafolio {
+  font-size: 13px;
+  color: var(--ink-muted);
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.volver-portafolio:hover {
+  color: var(--accent);
 }
 
 .contenido {
@@ -69,15 +85,15 @@ body {
 
 .tarjeta {
   background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 28px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
 }
 
 .selector-golpe {
   display: flex;
   gap: 8px;
-  background: var(--paper);
+  background: var(--bg);
   padding: 4px;
   border-radius: 10px;
   margin-bottom: 20px;
@@ -89,17 +105,15 @@ body {
   border: none;
   background: transparent;
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: var(--ink-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .golpe-btn.activo {
-  background: var(--ink);
-  color: white;
+  background: var(--accent);
+  color: var(--bg);
 }
 
 .tabs {
@@ -113,22 +127,21 @@ body {
   padding: 10px 2px;
   border: none;
   background: none;
-  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--ink-muted);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition: all 0.15s ease;
 }
 
 .tab.activo {
   color: var(--ink);
-  border-bottom-color: var(--court-blue);
+  border-bottom-color: var(--accent);
 }
 
-.zona-subida {
+.zona-subida,
+.panel-camara {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -138,31 +151,36 @@ body {
   border-radius: 12px;
   cursor: pointer;
   color: var(--ink-muted);
-  transition: all 0.15s ease;
 }
 
 .zona-subida:hover {
-  border-color: var(--court-blue);
-  color: var(--court-blue);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-.zona-subida.proximamente {
-  cursor: default;
+.video-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--bg);
+  border-radius: 12px;
+  object-fit: cover;
 }
 
-.zona-subida.proximamente:hover {
-  border-color: var(--line);
-  color: var(--ink-muted);
-}
-
-.icono-subida {
-  width: 28px;
-  height: 28px;
-}
-
-.zona-subida span {
+.boton-primario {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
   font-size: 14px;
-  text-align: center;
+  cursor: pointer;
+}
+
+.boton-grabar,
+.boton-detener {
+  background: var(--verdict-red);
+  color: white;
 }
 
 .cargando {
@@ -182,23 +200,37 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--court-blue);
+  background: var(--accent);
   animation: rebote 1s infinite ease-in-out;
 }
 
-.puntos-cargando span:nth-child(2) { animation-delay: 0.15s; }
-.puntos-cargando span:nth-child(3) { animation-delay: 0.3s; }
-.puntos-cargando span:nth-child(4) { animation-delay: 0.45s; }
-
-@keyframes rebote {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+.puntos-cargando span:nth-child(2) {
+  animation-delay: 0.15s;
 }
 
-.cargando p {
-  font-size: 14px;
+.puntos-cargando span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.puntos-cargando span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+@keyframes rebote {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.nota-cargando {
+  font-size: 12px;
   color: var(--ink-muted);
-  margin: 0;
+  margin-top: -6px;
 }
 
 .marcador {
@@ -206,18 +238,7 @@ body {
   padding: 28px;
   border-radius: 12px;
   text-align: center;
-}
-
-.marcador.correcto {
-  background: #EAF7F0;
-}
-
-.marcador.incorrecto {
-  background: #FCEBEA;
-}
-
-.marcador.error {
-  background: #FCEBEA;
+  background: var(--panel);
 }
 
 .marcador-golpe {
@@ -229,11 +250,12 @@ body {
 }
 
 .marcador-veredicto {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 40px;
-  letter-spacing: 1px;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 38px;
   margin: 0;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 
 .marcador.correcto .marcador-veredicto {
@@ -241,7 +263,7 @@ body {
 }
 
 .marcador.incorrecto .marcador-veredicto {
-  color: var(--paddle-red);
+  color: var(--verdict-red);
 }
 
 .marcador-confianza {
@@ -253,14 +275,13 @@ body {
 }
 
 .confianza-numero {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 32px;
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
   color: var(--ink);
 }
 
 .confianza-signo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   color: var(--ink-muted);
 }
 
@@ -269,63 +290,33 @@ body {
   color: var(--ink-muted);
   margin-left: 6px;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .marcador-error-texto {
-  color: var(--paddle-red);
+  color: var(--verdict-red);
   font-size: 14px;
   margin: 0;
 }
 
-@media (max-width: 400px) {
-  .marcador-veredicto {
-    font-size: 32px;
+@media (max-width: 480px) {
+  .marca h1 {
+    font-size: 22px;
   }
-}
 
-.panel-camara {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
+  .marcador-veredicto {
+    font-size: 30px;
+  }
 
-.video-preview {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: var(--ink);
-  border-radius: 12px;
-  object-fit: cover;
-}
+  .contenido {
+    padding: 24px 16px 50px;
+  }
 
-.boton-primario {
-  padding: 12px 28px;
-  border: none;
-  border-radius: 10px;
-  background: var(--court-blue);
-  color: white;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
+  .encabezado {
+    flex-wrap: wrap;
+  }
 
-.boton-primario:hover {
-  opacity: 0.9;
-}
-
-.boton-grabar {
-  background: var(--paddle-red);
-}
-
-.boton-detener {
-  background: var(--paddle-red);
-  animation: pulso 1.2s infinite;
-}
-
-@keyframes pulso {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 54, 43, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(214, 54, 43, 0); }
+  .volver-portafolio {
+    margin-left: 0;
+    margin-top: 6px;
+  }
 }

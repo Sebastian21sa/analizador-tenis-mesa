@@ -39,6 +39,17 @@ function App() {
   function subirYAnalizar(evento) {
     const archivo = evento.target.files[0]
     if (!archivo) return
+
+    const TAMANO_MAXIMO_MB = 20
+    const tamanoMB = archivo.size / (1024 * 1024)
+
+    if (tamanoMB > TAMANO_MAXIMO_MB) {
+      setResultado({
+        error: `El video pesa ${tamanoMB.toFixed(1)} MB. Sube un clip corto de un solo golpe (menos de ${TAMANO_MAXIMO_MB} MB) para mejores resultados.`,
+      })
+      return
+    }
+
     analizarVideo(archivo, archivo.name)
   }
 
@@ -79,21 +90,14 @@ function App() {
   return (
     <div className="pagina">
       <header className="encabezado">
-        <div className="marca">
-          <svg className="icono-marca" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="8" r="3" fill="currentColor" />
-            <circle cx="8" cy="20" r="3" fill="currentColor" />
-            <circle cx="32" cy="20" r="3" fill="currentColor" />
-            <circle cx="20" cy="32" r="3" fill="currentColor" />
-            <line x1="20" y1="8" x2="8" y2="20" stroke="currentColor" strokeWidth="1.5" />
-            <line x1="20" y1="8" x2="32" y2="20" stroke="currentColor" strokeWidth="1.5" />
-            <line x1="8" y1="20" x2="20" y2="32" stroke="currentColor" strokeWidth="1.5" />
-            <line x1="32" y1="20" x2="20" y2="32" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-          <div>
-            <h1>Tecnica</h1>
-            <p className="eyebrow">Analisis de drive y reves</p>
+        <div style={{ display: 'flex', alignItems: 'center', maxWidth: 520, margin: '0 auto' }}>
+          <div className="marca">
+            <img src="/logo.png" alt="PongIQ" style={{ height: 140 }} />
+            <p className="eyebrow" style={{ marginTop: 6 }}>Analiza tus golpes y mejora tu técnica de tenis de mesa</p>
           </div>
+          <a href="https://web-sebastian.vercel.app" className="volver-portafolio">
+            Portafolio →
+          </a>
         </div>
       </header>
 
@@ -167,6 +171,7 @@ function App() {
                 <span></span><span></span><span></span><span></span>
               </div>
               <p>Analizando tecnica...</p>
+              <p className="nota-cargando">Puede tardar hasta un minuto si el servidor estaba inactivo</p>
             </div>
           )}
 

@@ -12,7 +12,7 @@ options = PoseLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
     running_mode=VisionRunningMode.VIDEO)
 
-video = cv2.VideoCapture('raw/drive_correcto_raw.mp4')
+video = cv2.VideoCapture('raw/prueba_lado_opuesto.mp4')
 
 if not video.isOpened():
     print('ERROR: no se pudo abrir el video')
