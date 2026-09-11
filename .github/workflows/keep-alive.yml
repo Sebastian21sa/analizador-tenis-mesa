@@ -1,0 +1,13 @@
+name: Keep API Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -f https://pongiq.onrender.com/health || echo "El ping fallo, pero no rompemos el workflow"
