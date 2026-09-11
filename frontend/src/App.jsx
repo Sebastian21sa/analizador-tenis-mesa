@@ -93,7 +93,7 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', maxWidth: 520, margin: '0 auto' }}>
           <div className="marca">
             <img src="/logo.png" alt="PongIQ" style={{ height: 140 }} />
-            <p className="eyebrow" style={{ marginTop: 6 }}>Analiza tus golpes y mejora tu técnica de tenis de mesa</p>
+            <p className="eyebrow" style={{ marginTop: 6 }}>Analiza tus golpes y mejora tu técnica de tenis de mesa, Sube un golpe y se analiza en segundos.</p>
           </div>
           <a href="https://web-sebastian.vercel.app" className="volver-portafolio">
             Portafolio →

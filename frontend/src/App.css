@@ -61,9 +61,10 @@ body {
 }
 
 .eyebrow {
-  font-size: 12px;
+  font-size: 16px;
   color: var(--accent);
   margin: 2px 0 0;
+  color: var(--ink);
 }
 
 .volver-portafolio {
