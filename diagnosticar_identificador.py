@@ -8,6 +8,8 @@ import tensorflow as tf
 from tensorflow import keras
 from features import extraer_features
 
+
+"""Script para diagnosticar el identificador de golpes de tenis de mesa. Carga los datos de entrenamiento, realiza validación cruzada y calcula los errores por grupo."""
 SEMILLA = 42
 np.random.seed(SEMILLA)
 random.seed(SEMILLA)
@@ -15,6 +17,7 @@ tf.random.set_seed(SEMILLA)
 
 
 def cargar_carpeta(carpeta, etiqueta_golpe, nombre_grupo):
+    """Carga los archivos .npy de una carpeta y extrae las features de cada archivo"""
     X = []
     y = []
     grupos = []

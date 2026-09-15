@@ -17,6 +17,7 @@ opciones_pose = PoseLandmarkerOptions(
 
 
 def extraer_landmarks_de_video(ruta_video):
+    """ Extrae los landmarks de MediaPipe Pose de cada frame de un video."""
     video = cv2.VideoCapture(ruta_video)
     fps = video.get(cv2.CAP_PROP_FPS)
     if fps == 0:
@@ -47,6 +48,7 @@ def extraer_landmarks_de_video(ruta_video):
 
 
 def detectar_repeticiones(landmarks_por_frame, fps, multiplicador, distancia_seg):
+    """Detecta repeticiones de golpes en un video basado en la velocidad de la muñeca y devuelve las ventanas de frames correspondientes."""
     posiciones_muneca = [(f[16][0], f[16][1]) for f in landmarks_por_frame]
     velocidades = [0.0]
 

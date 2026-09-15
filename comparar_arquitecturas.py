@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 from features import extraer_features
 
+"""Script para comparar arquitecturas de redes neuronales para clasificar golpes de tenis de mesa. Carga los datos de entrenamiento, realiza validación cruzada y compara el rendimiento de diferentes arquitecturas."""
 SEMILLA = 42
 np.random.seed(SEMILLA)
 random.seed(SEMILLA)
@@ -15,6 +16,7 @@ tf.random.set_seed(SEMILLA)
 
 
 def cargar_dataset(carpeta, etiqueta, incluir_altura_muneca=False):
+    """Carga los archivos .npy de una carpeta y extrae las features de cada archivo"""
     X = []
     y = []
 
@@ -38,6 +40,7 @@ def crear_modelo_pequeno(input_dim):
 
 
 def crear_modelo_grande(input_dim):
+    """Crea un modelo más grande con capas adicionales y dropout para regularización."""
     modelo = keras.Sequential([
         keras.layers.Dense(32, activation='relu', input_shape=(input_dim,)),
         keras.layers.Dropout(0.2),
@@ -51,6 +54,7 @@ def crear_modelo_grande(input_dim):
 
 
 def evaluar_arquitectura(nombre_arq, crear_modelo_fn, X, y):
+    """Evalúa una arquitectura de red neuronal usando validación cruzada y devuelve las accuracies."""
     kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEMILLA)
     accuracies = []
 

@@ -14,6 +14,8 @@ options = PoseLandmarkerOptions(
 
 video = cv2.VideoCapture('raw/prueba_lado_opuesto.mp4')
 
+"""Extrae los landmarks de MediaPipe Pose de cada frame de un video y guarda una imagen con los landmarks detectados en el primer frame donde se detecten."""
+
 if not video.isOpened():
     print('ERROR: no se pudo abrir el video')
 else:

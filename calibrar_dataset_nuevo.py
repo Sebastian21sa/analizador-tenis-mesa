@@ -14,6 +14,8 @@ opciones_pose = PoseLandmarkerOptions(
     running_mode=VisionRunningMode.VIDEO)
 
 
+"""Script para calibrar el algoritmo de detección de golpes de tenis de mesa. Procesa videos de entrenamiento, extrae landmarks y calcula velocidades para determinar los mejores umbrales de detección."""
+
 def extraer_landmarks_de_video(ruta_video):
     video = cv2.VideoCapture(ruta_video)
     fps = video.get(cv2.CAP_PROP_FPS)
@@ -61,6 +63,7 @@ def calcular_velocidades(landmarks_por_frame):
 
 
 def probar_umbrales(velocidades_suaves, fps, real_esperado):
+    """Prueba diferentes combinaciones de multiplicador y distancia para detectar repeticiones y compara con el número esperado de repeticiones."""
     mejores = []
 
     for mult in [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0]:

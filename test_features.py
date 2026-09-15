@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from features import calcular_angulo, extraer_features
 
+"""Este archivo contiene tests unitarios para las funciones de features.py."""
 
 def test_angulo_90_grados():
     """Verifica que 3 puntos formando una L perfecta den 90 grados, como si fuera un codo doblado a 90 grados."""

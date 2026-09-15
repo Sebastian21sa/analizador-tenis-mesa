@@ -13,7 +13,7 @@ np.random.seed(SEMILLA)
 random.seed(SEMILLA)
 tf.random.set_seed(SEMILLA)
 
-
+"""Este script entrena un modelo de red neuronal para identificar si un golpe de tenis de mesa es correcto o incorrecto, utilizando los landmarks extraídos de MediaPipe Pose."""
 def cargar_carpeta(carpeta, etiqueta_golpe):
     X = []
     y = []
