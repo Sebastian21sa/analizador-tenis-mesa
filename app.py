@@ -103,20 +103,19 @@ def extraer_landmarks_de_video(ruta_video):
         ventanas.append((inicio, fin))
     return ventanas"""
 
-
-@app.route('/health', methods=['GET'])
-def health():
-    """Punto final de la API que devuelve el estado de salud del servicio y si los modelos están cargados correctamente."""
-    try:
-        return jsonify({
-            'status': 'ok',
-            'modelo_drive': 'cargado' if modelo_drive is not None else 'no disponible',
-            'modelo_reves': 'cargado' if modelo_reves is not None else 'no disponible',
-        }), 200
-    except Exception as e:
-        logger.error(f'Error en health check: {str(e)}')
+@app.route('/health', methods=['GET']) 
+def health(): 
+    """Punto final de la API que verifica si los modelos están cargados correctamente y devuelve un estado de salud."""
+    try: 
+        return jsonify({ 
+            'status': 'ok', 
+            'modelo_drive': 'cargado' if modelo_drive is not None else 'no disponible', 
+            'modelo_reves': 'cargado' if modelo_reves is not None else 'no disponible', 
+            'modelo_identificador': 'cargado' if modelo_identificador is not None else 'no disponible', 
+            }), 200 
+    except Exception as e: 
+        logger.error(f'Error en health check: {str(e)}') 
         return jsonify({'status': 'error'}), 500
-
 
 @app.route('/predecir', methods=['POST'])
 def predecir():
