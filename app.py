@@ -1,34 +1,42 @@
-import os 
-import tempfile 
-import cv2 
-import numpy as np 
-import joblib 
-import mediapipe as mp 
-from flask import Flask, request, jsonify 
-from tensorflow import keras 
+import os
+import tempfile
+import cv2
+import numpy as np
+import joblib
+import mediapipe as mp
+from flask import Flask, request, jsonify
+from tensorflow import keras
 from features import extraer_features
-import logging 
-from flask_cors import CORS 
-logger = logging.getLogger(__name__) 
-logger.setLevel(logging.INFO) 
+import logging
+from flask_cors import CORS
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 if not logger.handlers:
     manejador = logging.StreamHandler()
     formato = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     manejador.setFormatter(formato)
     logger.addHandler(manejador)
-"""Application Flask para analizar videos de tenis de mesa y clasificar golpes como correctos o incorrectos usando modelos entrenados."""
-app = Flask(__name__) 
-CORS(app)
-modelo_drive = keras.models.load_model('modelo_drive_final.h5') 
-scaler_drive = joblib.load('scaler_drive.pkl') 
-modelo_reves = keras.models.load_model('modelo_reves_final.h5') 
-scaler_reves = joblib.load('scaler_reves.pkl')
 
-BaseOptions = mp.tasks.BaseOptions 
-PoseLandmarker = mp.tasks.vision.PoseLandmarker 
-PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions 
-VisionRunningMode = mp.tasks.vision.RunningMode 
-opciones_pose = PoseLandmarkerOptions( base_options=BaseOptions(model_asset_path='pose_landmarker_lite.task'), running_mode=VisionRunningMode.VIDEO) 
+"""Application Flask para analizar videos de tenis de mesa y clasificar golpes como correctos o incorrectos usando modelos entrenados."""
+app = Flask(__name__)
+CORS(app)
+
+modelo_drive = keras.models.load_model('modelo_drive_final.h5')
+scaler_drive = joblib.load('scaler_drive.pkl')
+modelo_reves = keras.models.load_model('modelo_reves_final.h5')
+scaler_reves = joblib.load('scaler_reves.pkl')
+modelo_identificador = keras.models.load_model('modelo_identificador_final.h5')
+scaler_identificador = joblib.load('scaler_identificador.pkl')
+
+BaseOptions = mp.tasks.BaseOptions
+PoseLandmarker = mp.tasks.vision.PoseLandmarker
+PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
+opciones_pose = PoseLandmarkerOptions(
+    base_options=BaseOptions(model_asset_path='pose_landmarker_lite.task'),
+    running_mode=VisionRunningMode.VIDEO)
+
 
 def extraer_landmarks_de_video(ruta_video):
     """ Extrae los landmarks de MediaPipe Pose de cada frame de un video."""
@@ -95,6 +103,7 @@ def extraer_landmarks_de_video(ruta_video):
         ventanas.append((inicio, fin))
     return ventanas"""
 
+
 @app.route('/health', methods=['GET'])
 def health():
     """Punto final de la API que devuelve el estado de salud del servicio y si los modelos están cargados correctamente."""
@@ -108,16 +117,19 @@ def health():
         logger.error(f'Error en health check: {str(e)}')
         return jsonify({'status': 'error'}), 500
 
+
 @app.route('/predecir', methods=['POST'])
 def predecir():
     """Punto final de la API que recibe un video y devuelve la predicción del golpe (correcto o incorrecto) junto con la confianza."""
     if 'video' not in request.files:
         return jsonify({'error': 'No se envio ningun video'}), 400
+
     golpe = request.form.get('golpe')
     if golpe not in ['drive', 'reves']:
         return jsonify({
             'error': 'El parametro golpe debe ser "drive" o "reves"'
         }), 400
+
     archivo_video = request.files['video']
     with tempfile.NamedTemporaryFile(
         delete=False,
@@ -125,30 +137,45 @@ def predecir():
     ) as temp:
         archivo_video.save(temp.name)
         ruta_temporal = temp.name
-    try: 
-        """Extrae los landmarks del video y realiza la predicción usando el modelo correspondiente (drive o revés). Devuelve un JSON con el veredicto y la confianza de la predicción."""
-        landmarks = extraer_landmarks_de_video(ruta_temporal) 
-        if len(landmarks) < 5: 
-            return jsonify({'error': 'No se detecto suficiente movimiento en el video'}), 400 
-        if golpe == 'drive': 
-            features = extraer_features(landmarks, incluir_altura_muneca=False) 
-            features_escalados = scaler_drive.transform([features]) 
-            prediccion = float(modelo_drive.predict(features_escalados, verbose=0)[0][0]) 
-        else:
-            features = extraer_features(landmarks, incluir_altura_muneca=True) 
-            features_escalados = scaler_reves.transform([features]) 
-            prediccion = float(modelo_reves.predict(features_escalados, verbose=0)[0][0]) 
-        veredicto = 'correcto' if prediccion > 0.5 else 'incorrecto' 
-        confianza = prediccion if veredicto == 'correcto' else 1 - prediccion 
-        logger.info(f'Prediccion exitosa: golpe={golpe}, veredicto={veredicto}, confianza={confianza:.2f}') 
-        return jsonify({ 'golpe': golpe, 'veredicto': veredicto, 'confianza': round(confianza, 2) }) 
-    except Exception as e: 
-        logger.error(f'Error procesando video: {str(e)}') 
-        return jsonify({'error': 'Ocurrio un error procesando el video'}), 500 
-    finally: 
-        os.remove(ruta_temporal) 
 
-if __name__ == '__main__': 
-    puerto = int(os.environ.get('PORT', 5000)) 
-    modo_debug = os.environ.get('FLASK_DEBUG', 'True') == 'True' 
-app.run(host='0.0.0.0', port=puerto, debug=modo_debug)
+    try:
+        """Extrae los landmarks del video y realiza la predicción usando el modelo correspondiente (drive o revés). Devuelve un JSON con el veredicto y la confianza de la predicción."""
+        landmarks = extraer_landmarks_de_video(ruta_temporal)
+        if len(landmarks) < 5:
+            return jsonify({'error': 'No se detecto suficiente movimiento en el video'}), 400
+
+        features_identificador = extraer_features(landmarks, incluir_altura_muneca=True)
+        features_identificador_escalados = scaler_identificador.transform([features_identificador])
+        prediccion_identificador = float(modelo_identificador.predict(features_identificador_escalados, verbose=0)[0][0])
+        golpe_detectado = 'drive' if prediccion_identificador > 0.5 else 'reves'
+
+        if golpe_detectado != golpe:
+            logger.info(f'Golpe no coincide: usuario selecciono {golpe}, se detecto {golpe_detectado}')
+            return jsonify({
+                'error': f'Esto no parece un {golpe}. Se detecto un movimiento mas similar a un {golpe_detectado}. Intenta de nuevo seleccionando el golpe correcto.'
+            }), 400
+
+        if golpe == 'drive':
+            features = extraer_features(landmarks, incluir_altura_muneca=False)
+            features_escalados = scaler_drive.transform([features])
+            prediccion = float(modelo_drive.predict(features_escalados, verbose=0)[0][0])
+        else:
+            features = extraer_features(landmarks, incluir_altura_muneca=True)
+            features_escalados = scaler_reves.transform([features])
+            prediccion = float(modelo_reves.predict(features_escalados, verbose=0)[0][0])
+
+        veredicto = 'correcto' if prediccion > 0.5 else 'incorrecto'
+        confianza = prediccion if veredicto == 'correcto' else 1 - prediccion
+        logger.info(f'Prediccion exitosa: golpe={golpe}, veredicto={veredicto}, confianza={confianza:.2f}')
+        return jsonify({'golpe': golpe, 'veredicto': veredicto, 'confianza': round(confianza, 2)})
+    except Exception as e:
+        logger.error(f'Error procesando video: {str(e)}')
+        return jsonify({'error': 'Ocurrio un error procesando el video'}), 500
+    finally:
+        os.remove(ruta_temporal)
+
+
+if __name__ == '__main__':
+    puerto = int(os.environ.get('PORT', 5000))
+    modo_debug = os.environ.get('FLASK_DEBUG', 'True') == 'True'
+    app.run(host='0.0.0.0', port=puerto, debug=modo_debug)

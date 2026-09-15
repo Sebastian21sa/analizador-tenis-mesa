@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN python entrenar_final.py
+RUN python entrenar_identificador.py
 
 EXPOSE 5000
 
