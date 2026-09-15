@@ -176,21 +176,22 @@ function App() {
           )}
 
           {resultado && !cargando && (
-            <div className={resultado.error ? 'marcador error' : `marcador ${resultado.veredicto}`}>
-              {resultado.error ? (
-                <p className="marcador-error-texto">{resultado.error}</p>
-              ) : (
-                <>
-                  <p className="marcador-golpe">{resultado.golpe}</p>
-                  <p className="marcador-veredicto">{resultado.veredicto}</p>
-                  <div className="marcador-confianza">
-                    <span className="confianza-numero">{(resultado.confianza * 100).toFixed(0)}</span>
-                    <span className="confianza-signo">%</span>
-                    <span className="confianza-label">confianza</span>
-                  </div>
-                </>
-              )}
-            </div>
+            resultado.error ? (
+              <div className="marcador aviso">
+                <p className="marcador-aviso-titulo">Revisa el golpe seleccionado</p>
+                <p className="marcador-aviso-texto">{resultado.error}</p>
+              </div>
+            ) : (
+              <div className={`marcador ${resultado.veredicto}`}>
+                <p className="marcador-golpe">{resultado.golpe}</p>
+                <p className="marcador-veredicto">{resultado.veredicto}</p>
+                <div className="marcador-confianza">
+                  <span className="confianza-numero">{(resultado.confianza * 100).toFixed(0)}</span>
+                  <span className="confianza-signo">%</span>
+                  <span className="confianza-label">confianza</span>
+                </div>
+              </div>
+            )
           )}
         </section>
       </main>
