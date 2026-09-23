@@ -80,17 +80,23 @@ Video del usuario → API Flask (Docker) → Pose + preprocesamiento (mismo pipe
 
 ## 3. Dataset
 
-Segmentación automática por velocidad de movimiento de la muñeca (`scipy.signal.find_peaks`), calibrada por golpe:
+Segmentación automática por velocidad de movimiento de la muñeca (`scipy.signal.find_peaks`).
 
-| Categoría | Umbral (height, distance) | Repeticiones |
-|---|---|---|
-| Drive correcto | 0.018, 80 | 23 |
-| Drive incorrecto | 0.018, 80 | 16 |
-| Revés correcto | 0.008, 65 | 20 |
-| Revés incorrecto | 0.008, 65 | 12 |
-| **Total** | | **71 repeticiones** |
+**Estado actual (tras la ampliación documentada en la sección 14):**
 
-Existe un leve desbalance de clases (revés incorrecto es la categoría más pequeña).
+| Categoría | Repeticiones |
+|---|---|
+| Drive correcto | 243 |
+| Drive incorrecto | 45 |
+| Revés correcto | 212 |
+| Revés incorrecto | 38 |
+| **Total** | **538 repeticiones** |
+
+Cubre 4 ángulos de cámara (lateral original, lateral opuesto, frontal, espalda) y ambas manos (diestro y zurdo, este último normalizado con espejo de lateralidad — ver sección 14).
+
+**Desbalance de clases:** dentro de cada golpe, "correcto" supera ampliamente a "incorrecto" (243 vs. 45 en drive, 212 vs. 38 en revés) — esperable, ya que se grabaron más ángulos y repeticiones extra de "correcto" (incluyendo variantes de sombra) que de "incorrecto". Entre golpes, el total está balanceado (288 drive vs. 250 revés).
+
+*Nota histórica: la tabla original de calibración manual por video (umbrales `height`/`distance` específicos de las primeras 71 repeticiones) se conserva en el historial de commits del proyecto; el dataset ampliado se procesó con calibración dirigida por video, ver sección 14.*
 
 ---
 
@@ -201,3 +207,103 @@ Problemas reales encontrados y resueltos durante el desarrollo:
 **Resultado:** proyecto completo accesible públicamente de punta a punta — frontend en Vercel comunicándose con backend en Render, sin dependencia de que ninguna máquina personal esté encendida.
 
 **Demo en vivo:** [pongiq-murex.vercel.app](https://pongiq-murex.vercel.app)
+
+---
+
+## 11. Monitoreo y experiencia de uso
+
+**Endpoint `/health`:** ruta GET que confirma que el servicio está activo y que ambos modelos (drive y revés) se cargaron correctamente al arrancar, sin necesidad de procesar un video completo. Punto de entrada estándar para monitoreo automatizado.
+
+**Validación proactiva de tamaño de video:** a raíz del `502 Bad Gateway` descubierto al desplegar (sección 10), se agregó una validación en el frontend que rechaza archivos mayores a 20 MB *antes* de enviarlos, con un mensaje explicando el porqué — en vez de que el usuario espere y se tope con un error del servidor sin contexto.
+
+**Aviso de cold start:** dado que el plan gratuito de Render duerme el servicio tras inactividad, se agregó una nota visible durante el estado de carga advirtiendo que la primera petición puede tardar hasta un minuto — transparencia sobre una limitación real del hosting gratuito, en vez de dejar que se sienta como que la aplicación está "colgada".
+
+---
+
+## 12. Fase de mejora — Dataset multi-ángulo
+
+Siguiendo el plan de mejora de la sección 9 (resolver la sensibilidad al ángulo de cámara), se amplió el alcance del dataset a **4 ángulos de cámara**: lateral original, lateral opuesto, frontal, y espalda — más una variante con jugador zurdo (pendiente de coordinar).
+
+**Validación previa a grabar:** antes de invertir tiempo grabando el dataset completo en cada ángulo nuevo, se probó la detección de MediaPipe Pose con clips cortos de prueba en los 3 ángulos nuevos. Los 3 dieron 100% de detección de frames (el modelo encontró un cuerpo en cada frame).
+
+**Hallazgo técnico importante: detección no es lo mismo que precisión.** Al inspeccionar visualmente el ángulo "lateral opuesto", se notó que algunos landmarks no coincidían con la posición real del cuerpo, a pesar del 100% de detección reportado. Explicación: el campo `pose_landmarks` solo indica si MediaPipe encontró *algún* cuerpo en el frame — no garantiza que cada punto individual esté correctamente ubicado. Cuando una articulación queda ocluida (el brazo dominante pasando detrás del torso, en este ángulo específico), MediaPipe no reporta "no visible" — infiere una posición plausible basada en su entrenamiento previo, y esa posición puede no coincidir con la realidad, aunque cuente como "detectado".
+
+**Solución planeada:** cada landmark de MediaPipe Pose incluye un campo `visibility` (0 a 1) que sí refleja la confianza de que el punto es realmente visible (no inferido). En la etapa de procesamiento del dataset ampliado, se filtrarán o se les restará peso a los frames donde la visibilidad del codo/muñeca del lado dominante sea baja, en vez de calcular features sobre posiciones que el modelo está adivinando.
+
+**Decisión de alcance:** se optó por conservar los 4 ángulos (incluyendo el "lado opuesto" con la limitación conocida) en vez de descartarlo, priorizando que el sistema funcione razonablemente sin importar cómo un usuario real decida grabar — con la mitigación de visibilidad aplicada en el preprocesamiento.
+
+---
+
+## 13. Keep-alive de la API (GitHub Actions)
+
+**Problema:** el plan gratuito de Render duerme el servicio tras 15 minutos de inactividad, generando una demora de 30-60s en la primera petición de cualquier usuario nuevo.
+
+**Solución:** un segundo workflow de GitHub Actions (`.github/workflows/keep-alive.yml`), independiente del de tests, con un disparador `schedule` (cron `*/10 * * * *` — cada 10 minutos) que hace `curl` al endpoint `/health`. Al mantener peticiones constantes por debajo del umbral de 15 minutos de inactividad, el servicio se mantiene activo sin depender de tráfico real de usuarios.
+
+**Limitación honesta documentada:** GitHub no garantiza precisión exacta en la ejecución de workflows programados — en momentos de alta demanda en su infraestructura, puede haber demoras de varios minutos respecto al intervalo configurado. Es la mejor solución gratuita disponible, no una garantía absoluta de que el servicio nunca se duerma.
+
+---
+
+## 14. Ampliación del dataset — 4 ángulos, zurdo, y práctica tipo "sombra"
+
+**Grabación inicial (primera sesión):** 16 videos, cubriendo drive y revés, diestro y zurdo, en 4 ángulos de cámara (lateral original, lateral opuesto, frontal, espalda) — todos etiquetados "correcto". Los "incorrecto" originales del dataset base solo existen para el ángulo lateral original, por lo que las categorías nuevas (3 ángulos adicionales + zurdo) quedan incompletas hasta grabar sus propios incorrectos.
+
+**Decisión: grabar los incorrectos faltantes como "sombra"** (el movimiento del golpe exagerando los errores técnicos conocidos, sin pelota ni mesa reales), en vez de con pelota real.
+
+**Justificación técnica (no es solo conveniencia):** el pipeline de segmentación y extracción de features se basa únicamente en el movimiento del cuerpo del jugador (velocidad de muñeca, ángulos articulares) — MediaPipe Pose nunca rastrea la pelota, así que una repetición de sombra genera exactamente el mismo tipo de señal útil que una repetición real.
+
+**Justificación de producto (la más importante):** un usuario real de la aplicación no siempre va a tener acceso a una mesa y pelota al momento de grabarse — es razonable esperar que muchos usuarios graben movimientos tipo sombra. Si el dataset de entrenamiento solo contuviera repeticiones con pelota/mesa real, un usuario grabando sombra sería otro caso de entrada fuera de distribución (mismo problema documentado en la sección 10). Incluir sombra en el entrenamiento desde el inicio alinea mejor la distribución de entrenamiento con el uso real esperado de la aplicación, en vez de ser solo una forma más rápida de generar volumen de datos.
+
+**Matiz técnico a vigilar:** una repetición de sombra podría tener un ritmo ligeramente distinto a una repetición real (en la real, el cuerpo reacciona al vuelo de la pelota; en la sombra, el jugador controla el tiempo completo). No se espera que esto afecte significativamente los features actuales (ángulo de codo, rotación de cadera), pero queda anotado como posible variable a investigar si el modelo mostrara comportamiento inconsistente entre datos de sombra y datos reales.
+
+---
+
+## 15. Reentrenamiento con dataset ampliado y pipeline de dos etapas
+
+### 15.1 Resultados del reentrenamiento
+
+Con el dataset ampliado (538 repeticiones: 288 drive, 250 revés — desde 71 originales), se comparó la arquitectura original (Dense 16→8→1) contra una versión más grande con regularización (Dense 32→Dropout→16→Dropout→8→1), validando ambas con 5-fold cross-validation:
+
+| Golpe | Red pequeña (original) | Red grande (dropout) |
+|---|---|---|
+| Drive | 89.2% ± 4.7% | 89.6% ± 5.1% |
+| Revés | 94.4% ± 2.7% | 94.8% ± 2.7% |
+
+La diferencia entre arquitecturas (+0.4% en ambos casos) es menor que la propia desviación estándar — no es una mejora estadísticamente significativa. **Se mantuvo la arquitectura pequeña original**: la mejora real vino completamente de ampliar el dataset (74-76% → 89-95%), no de aumentar la capacidad del modelo. Esto confirma retroactivamente que la decisión original de usar una red pequeña (Día 23, motivada por el dataset reducido) seguía siendo la correcta incluso con 7 veces más datos.
+
+### 15.2 El problema de out-of-distribution, confirmado de nuevo
+
+Al probar los modelos reentrenados, se confirmó el problema documentado en la sección 10: subir un revés seleccionando "drive" (o viceversa) seguía siendo clasificado como "correcto" con alta confianza. Esto demostró que **el problema no se resuelve con más dataset** — es una limitación estructural: el modelo de drive nunca aprendió a reconocer "¿esto es un drive?", solo "¿estos 8 números parecen un drive correcto?", asumiendo que ya es un drive. Dado que ambos golpes comparten features (ángulo de codo, rotación de cadera), es posible que un revés caiga dentro del rango numérico que el modelo aprendió como "drive correcto".
+
+### 15.3 Solución: identificador de golpe como primera etapa
+
+Con suficientes datos ya disponibles de ambos golpes, se entrenó un tercer modelo — un clasificador binario que predice "¿es drive o revés?", usando los 12 features (incluyendo altura de muñeca, informativa para distinguir el tipo de golpe incluso en drive) sobre las 538 repeticiones combinadas (etiqueta = golpe, ignorando correcto/incorrecto).
+
+**Validación (5-fold cross-validation):** 89.2% ± 5.3% de accuracy.
+
+**Diagnóstico por grupo** (dónde se concentran los errores):
+
+| Grupo | Error |
+|---|---|
+| Revés incorrecto | 23.7% |
+| Drive correcto | 15.2% |
+| Drive incorrecto | 8.9% |
+| Revés correcto | 3.8% |
+
+El grupo con más error ("revés incorrecto") es consistente con la hipótesis de que un revés mal ejecutado pierde su seña distintiva (elevación de muñeca) y se parece más a un drive. Sin embargo, "drive incorrecto" tuvo *menos* error que "drive correcto", por lo que no hay un patrón limpio de "lo incorrecto es siempre más difícil" — el tamaño desigual de las muestras (los grupos "incorrecto" son 5-6 veces más chicos) probablemente contribuye al ruido más que un patrón conceptual.
+
+**Decisión:** integrar el identificador tal cual (89% de protección es una mejora enorme frente al 0% actual), documentando honestamente que no es perfecto.
+
+### 15.4 Arquitectura final del pipeline (dos etapas)
+
+```
+Video → landmarks (MediaPipe) → features (12, con altura de muñeca)
+→ Etapa 1: modelo identificador → ¿coincide con el golpe seleccionado?
+   → NO: responde error explicando el golpe detectado, termina aquí
+   → SI: continúa a Etapa 2
+→ Etapa 2: modelo de correcto/incorrecto especifico del golpe → veredicto final
+```
+
+Los 3 modelos (`modelo_drive_final.h5`, `modelo_reves_final.h5`, `modelo_identificador_final.h5`) se entrenan automáticamente en cada build de Docker, igual que se decidió en la sección 10 — ningún paso manual adicional al desplegar.
+
+**Validación en producción (pruebas con cámara en vivo):** tras el despliegue, se probaron varios casos reales, incluyendo intentos deliberados de golpe equivocado — el identificador capturó correctamente los mismatches (ej. revés real con "drive" seleccionado, correctamente rechazado) y dejó pasar correctamente los casos que sí coincidían.

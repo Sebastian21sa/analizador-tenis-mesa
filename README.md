@@ -60,11 +60,11 @@ Fue un dataset grabado y etiquetado a mano, con una clasificación automática d
 
 | Categoría | Repeticiones |
 |---|---|
-| Drive correcto | 23 |
-| Drive incorrecto | 16 |
-| Revés correcto | 20 |
-| Revés incorrecto | 12 |
-| **Total** | **71** |
+| Drive correcto | 243 |
+| Drive incorrecto | 45 |
+| Revés correcto | 212 |
+| Revés incorrecto | 38 |
+| **Total** | **538** |
 
 ## Resultados
 
@@ -72,27 +72,27 @@ Se validó con **5-fold cross-validation** (no un solo entrenamiento, para evita
 
 | Golpe | Accuracy promedio |
 |---|---|
-| Drive | 74% ± 13% |
-| Revés | 76% ± 15% |
+| Drive | 89.2% ± 4.7% |
+| Revés | 94.4% ± 2.7% |
+| Identificador de golpe | 89.2% ± 5.3% |
 
 Ambos resultados se mantienen consistentemente por encima del 50% (azar en clasificación binaria), confirmando que el modelo captura una señal real — aunque con la variabilidad esperable de un dataset pequeño y propio.
 
 ## Limitaciones conocidas
 
-Documentadas con honestidad:
+- El identificador de tipo de golpe que construi(drive vs reves) tiene ~89% de accuracy, no es perfecto: en aproximadamente 1 de cada 9 casos puede confundir el tipo de golpe, especialmente en repeticiones incorrectas de reves.
+- Los datos del jugador zurdo (normalizados con espejo de lateralidad) no se han validado aun con accuracy por separado del resto del dataset - el numero general mezcla diestro y zurdo sin desglosar..
+- El angulo del lado opuesto que tome para el dataset tiene una limitacion de visibilidad conocida: en ciertos frames el brazo dominante queda oculto detras del torso, y MediaPipe puede inferir una posicion poco confiable en vez de reportarla como no visible.
+- Los criterios de "correcto" e "incorrecto" se basan en mi experiencia propia como jugador, por lo que podria inferir entre un jugador u otro.
+- El plan gratuito de hosting impone limites practicos: tamano maximo de video por peticion, y el servicio puede tardar en responder tras periodos de inactividad.
 
-- **Dataset pequeño** (71 repeticiones): suficiente para validar el enfoque, insuficiente para producción real.
-- **Sensibilidad fuera de distribución (OOD)**: el modelo asume que el usuario selecciona correctamente qué golpe está ejecutando. Si se le pide evaluar un revés como si fuera un drive, puede responder con alta confianza de forma incorrecta — una limitación conocida de los clasificadores binarios entrenados sin una clase de "rechazo".
-- **Sensibilidad al ángulo de cámara**: el dataset se grabó desde un único ángulo lateral. Videos desde ángulos muy distintos (frontal, cámara de laptop) pueden degradar la precisión.
-
-**Próxima fase planeada:** ampliar el dataset con múltiples ángulos de cámara y rediseñar el pipeline en dos etapas (1. identificar qué golpe es, 2. evaluar si fue correcto), resolviendo el problema de OOD desde la raíz.
 
 ## Despliegue
 
 - **Backend**: Docker en [Render](https://render.com), reentrenando el modelo automáticamente en cada build a partir del dataset versionado (`RUN python entrenar_final.py` dentro del Dockerfile) — garantiza que el modelo desplegado siempre coincide con el dataset del repositorio.
 - **Frontend**: [Vercel](https://vercel.com), con la URL de la API inyectada vía variable de entorno (`VITE_API_URL`).
 
-**Limitación conocida del plan gratuito:** el servicio de backend se "duerme" tras 15 minutos de inactividad (30-60s para despertar en la primera petición), y hay un límite práctico de tamaño/duración de video por petición — la API está diseñada para un solo golpe por video, no para sesiones de práctica completas.
+**Limitación conocida del plan gratuito:** el servicio de backend se "duerme" tras 15 minutos de inactividad (30-60s para despertar en la primera petición), por lo que genere un end-point para que se haga una intervencion cada diez minutos y evitar que se duerma y hay un límite práctico de tamaño/duración de video por petición — la API está diseñada para un solo golpe por video, no para sesiones de práctica completas.
 
 ## Cómo correrlo localmente
 
