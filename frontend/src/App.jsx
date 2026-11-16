@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react'
 import './App.css'
+import { supabase } from './supabaseClient'
+import { useSesion } from './useSesion'
+import Login from './Login'
 
 function App() {
   const [golpe, setGolpe] = useState('drive')
@@ -8,11 +11,18 @@ function App() {
   const [cargando, setCargando] = useState(false)
   const [camaraActiva, setCamaraActiva] = useState(false)
   const [grabando, setGrabando] = useState(false)
+  const [mostrarLogin, setMostrarLogin] = useState(false)
+
+  const { sesion, cargandoSesion } = useSesion()
 
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
+
+  async function cerrarSesion() {
+    await supabase.auth.signOut()
+  }
 
   async function analizarVideo(archivoOBlob, nombreArchivo) {
     const formData = new FormData()
@@ -23,7 +33,7 @@ function App() {
     setCargando(true)
 
     try {
-      const respuesta = await fetch(`${import.meta.env.VITE_API_URL}/predecir`,{
+      const respuesta = await fetch(`${import.meta.env.VITE_API_URL}/predecir`, {
         method: 'POST',
         body: formData,
       })
@@ -89,6 +99,25 @@ function App() {
 
   return (
     <div className="pagina">
+      {supabase && !cargandoSesion && (
+        <div className="barra-usuario">
+          {sesion ? (
+            <>
+              <span className="barra-usuario-correo">{sesion.user.email}</span>
+              <button className="barra-usuario-boton" onClick={cerrarSesion}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <button className="barra-usuario-boton" onClick={() => setMostrarLogin(true)}>
+              Iniciar sesión
+            </button>
+          )}
+        </div>
+      )}
+
+      {mostrarLogin && <Login onCerrar={() => setMostrarLogin(false)} />}
+
       <header className="encabezado">
         <div style={{ display: 'flex', alignItems: 'center', maxWidth: 520, margin: '0 auto' }}>
           <div className="marca">
