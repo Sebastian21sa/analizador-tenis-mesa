@@ -14,6 +14,18 @@ function traducirError(mensaje) {
   if (mensaje.includes('at least')) {
     return 'La contraseña debe tener al menos 6 caracteres.'
   }
+  if (mensaje.toLowerCase().includes('rate limit')) {
+    return 'Se enviaron demasiados correos en poco tiempo. Espera un rato e intenta de nuevo.'
+  }
+  if (mensaje.includes('Invalid API key')) {
+    return 'La configuración de Supabase es incorrecta (llave inválida).'
+  }
+  if (mensaje.includes('Signups not allowed')) {
+    return 'El registro con correo está desactivado.'
+  }
+  if (mensaje.toLowerCase().includes('invalid') && mensaje.toLowerCase().includes('email')) {
+    return 'Ese correo no es válido.'
+  }
   return 'No se pudo completar la acción. Intenta de nuevo.'
 }
 
@@ -38,6 +50,7 @@ function Login({ onCerrar }) {
       })
 
       if (fallo) {
+        console.error('Error de registro en Supabase:', fallo)
         setError(traducirError(fallo.message))
       } else if (!data.session) {
         setAviso('Te enviamos un correo para confirmar tu cuenta. Revisa tu bandeja de entrada.')
@@ -51,6 +64,7 @@ function Login({ onCerrar }) {
       })
 
       if (fallo) {
+        console.error('Error de inicio de sesión en Supabase:', fallo)
         setError(traducirError(fallo.message))
       } else {
         onCerrar()
